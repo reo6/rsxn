@@ -112,12 +112,11 @@ impl ServerLauncher {
 
     pub fn send_command(&mut self, command: String) {
         if let Some(process) = &self.process {
-//            let mut stdin: std::process::ChildStdin = process.lock().unwrap().stdin.take().expect("Failed to capture stdin");
-//            stdin.write_all(command.as_bytes()).expect("Failed to write to stdin");
             process.lock().unwrap().stdin.as_mut().map_or_else(|| {
-                panic!("Failed to capture stdin"); // Eski koda benzesin diye
+                panic!("Failed to capture stdin");
             }, |stdin| {
                 stdin.write_all(command.as_bytes()).expect("Failed to write to stdin");
+                stdin.flush().expect("Failed to flush stdin");
             });
         } else {
             error!("Failed to send command to server: no process found");
