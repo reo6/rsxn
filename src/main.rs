@@ -13,7 +13,7 @@ fn main() {
     let (sender, receiver) = mpsc::channel();
 
     let server_launcher = Arc::new(Mutex::new(ServerLauncher::new(
-        std::env::var("PAPER_JAR_PATH").expect("PAPER_JAR_PATH not set"),
+        std::env::var("SERVER_JAR_PATH").expect("SERVER_JAR_PATH not set"),
         std::env::var("JAVA_EXE_PATH").expect("JAVA_EXE_PATH not set"),
         std::env::var("RSXN_SERVER_PATH").expect("RSXN_SERVER_PATH not set"),
         vec![],
