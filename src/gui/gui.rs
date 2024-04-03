@@ -69,7 +69,7 @@ impl eframe::App for RsxnGUI {
                 });
 
                 ui.horizontal(|ui| {
-                    if ui.button("Start").clicked() {
+                    if (launcher.state == crate::launcher::ServerState::STOPPED) && ui.button("Start").clicked() {
                         self.logs.clear();
                         launcher.launch();
                     } else if (launcher.state == crate::launcher::ServerState::RUNNING)
