@@ -36,6 +36,7 @@ impl eframe::App for RsxnGUI {
 
                 egui::ScrollArea::vertical()
                     .max_height(300.0)
+                    .stick_to_bottom(true)
                     .show(ui, |ui| {
                         ui.add(egui::TextEdit::multiline(&mut logs_for_textedit.clone())
                             .font(egui::FontId::new(13.0, egui::FontFamily::Monospace))
