@@ -8,6 +8,7 @@ use std::io::BufReader;
 use std::io::BufRead;
 use std::sync::mpsc::Sender;
 use std::io::Write;
+use std::time::Duration;
 
 
 #[derive(PartialEq)]
@@ -89,12 +90,25 @@ impl ServerLauncher {
         let process_clone = Arc::clone(&process);
         let server_name = self.server_name.clone();
         thread::spawn(move || {
-            let output = process_clone.lock().unwrap().wait().expect("Failed to wait on child");
-
-            if output.success() {
-                info!("{} has stopped with code 0.", server_name);
-            } else {
-                warn!("{} has crashed with code {}.", server_name, output.code().expect("Failed to get the exit code"));
+            loop {
+                let maybe_status = {
+                    let mut process_lock = process_clone.lock().unwrap();
+                    process_lock.try_wait().expect("Failed to wait on child")
+                };
+        
+                match maybe_status {
+                    Some(status) => {
+                        if status.success() {
+                            info!("{} has stopped with code 0.", server_name);
+                        } else {
+                            warn!("{} has crashed with code {}.", server_name, status.code().expect("Failed to get the exit code"));
+                        }
+                        break;
+                    }
+                    None => {
+                        thread::sleep(Duration::from_millis(100));
+                    }
+                }
             }
         });
     }
