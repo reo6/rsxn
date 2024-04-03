@@ -3,6 +3,8 @@ use eframe::egui;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 
+const UI_LOG_PREFIX: &str = "[RSXN] ";
+
 pub struct RsxnGUI {
     command_input: String,
     log_stream_receiver: Receiver<String>,
@@ -71,11 +73,13 @@ impl eframe::App for RsxnGUI {
                 ui.horizontal(|ui| {
                     if (launcher.state == crate::launcher::ServerState::STOPPED) && ui.button("Start").clicked() {
                         self.logs.clear();
+                        self.logs.push(format!("{}Starting server...", UI_LOG_PREFIX));
                         launcher.launch();
-                    } else if (launcher.state == crate::launcher::ServerState::RUNNING)
-                        && ui.button("Stop").clicked()
-                    {
+                    }
+                    
+                    if (launcher.state == crate::launcher::ServerState::RUNNING) && ui.button("Stop").clicked() {
                         launcher.stop();
+                        self.logs.push(format!("{}Stopped server.", UI_LOG_PREFIX));
                     }
                 })
             })
