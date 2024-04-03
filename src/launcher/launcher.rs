@@ -124,7 +124,8 @@ impl ServerLauncher {
         }
     }
 
-    pub fn send_command(&mut self, command: String) {
+    pub fn send_command(&mut self, mut command: String) {
+        command.push('\n');
         if let Some(process) = &self.process {
             process.lock().unwrap().stdin.as_mut().map_or_else(|| {
                 panic!("Failed to capture stdin");
