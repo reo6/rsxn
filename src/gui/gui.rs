@@ -55,6 +55,7 @@ impl eframe::App for RsxnGUI {
 
                 ui.horizontal(|ui| {
                     let command_input = egui::TextEdit::singleline(&mut self.command_input)
+                        .desired_width(f32::INFINITY)
                         .hint_text("Enter a Command...");
 
                     let command_input_response = ui.add(command_input);
