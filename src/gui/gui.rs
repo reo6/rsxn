@@ -50,6 +50,13 @@ impl eframe::App for RsxnGUI {
                         self.logs.push(format!("{}Stopped server.", UI_LOG_PREFIX));
                     }
 
+                    // Button to open the server directory
+                    if ui.button("Open Server Directory").clicked() {
+                        if let Err(e) = opener::open(&launcher.server_dir) {
+                            self.logs.push(format!("{}Failed to open server directory: {}", UI_LOG_PREFIX, e));
+                        }
+                    }                    
+
                 });
             });
 

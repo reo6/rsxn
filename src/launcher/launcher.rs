@@ -22,9 +22,9 @@ pub enum ServerState {
 pub struct ServerLauncher {
     jarfile: String,
     java_path: String,
-    server_dir: String,
+    pub server_dir: String,
     server_args: Vec<String>,
-    server_name: String,
+    pub server_name: String,
     memory: i32,
     pub state: ServerState,
     process: Option<Arc<Mutex<std::process::Child>>>,
