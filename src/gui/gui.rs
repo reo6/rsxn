@@ -55,8 +55,7 @@ impl eframe::App for RsxnGUI {
                         if let Err(e) = opener::open(&launcher.server_dir) {
                             self.logs.push(format!("{}Failed to open server directory: {}", UI_LOG_PREFIX, e));
                         }
-                    }                    
-
+                    }
                 });
             });
 

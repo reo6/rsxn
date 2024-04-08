@@ -1,8 +1,8 @@
-use std::process::{Command, exit};
+use std::process::Command;
 use std::path::Path;
 use std::thread;
 use std::fs;
-use log::{info, debug, warn, error, LevelFilter};
+use log::{info, debug, warn, error};
 use std::sync::{Arc, Mutex};
 use std::io::BufReader;
 use std::io::BufRead;
@@ -76,7 +76,6 @@ impl ServerLauncher {
         self.process = Some(Arc::clone(&process));
 
         let process_clone = Arc::clone(&process);
-        let server_name = self.server_name.clone();
         let sender_clone = self.log_stream_sender.clone();
         thread::spawn(move || {
             let output = process_clone.lock().unwrap().stdout.take().expect("Failed to capture stdout");

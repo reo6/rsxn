@@ -25,9 +25,9 @@ fn main() {
     let server_launcher_clone = Arc::clone(&server_launcher);
 
     let native_options = eframe::NativeOptions::default();
-    eframe::run_native(
+    let _ = eframe::run_native(
         "rsxn",
         native_options,
-        Box::new(move |cc| Box::new(RsxnGUI::new_with_receiver(receiver, server_launcher_clone.clone())))
+        Box::new(move |_cc| Box::new(RsxnGUI::new_with_receiver(receiver, server_launcher_clone.clone())))
     );
 }
