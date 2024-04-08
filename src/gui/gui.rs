@@ -26,8 +26,36 @@ impl RsxnGUI {
     }
 }
 
+
+
 impl eframe::App for RsxnGUI {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        let mut launcher = self.launcher.lock().unwrap();
+
+        // Side Panel
+        egui::SidePanel::right("sidebar")
+            .resizable(true)
+            .default_width(150.0)
+            .width_range(80.0..=200.0)
+            .show(ctx, |ui| {
+                ui.vertical_centered_justified(|ui| {
+                    if (launcher.state == crate::launcher::ServerState::STOPPED) && ui.button("Start").clicked() {
+                        self.logs.clear();
+                        self.logs.push(format!("{}Starting server...", UI_LOG_PREFIX));
+                        launcher.launch();
+                    }
+                    
+                    if (launcher.state == crate::launcher::ServerState::RUNNING) && ui.button("Stop").clicked() {
+                        launcher.stop();
+                        self.logs.push(format!("{}Stopped server.", UI_LOG_PREFIX));
+                    }
+
+                });
+            });
+
+
+
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered(|ui| {
                 ui.heading("rsxn");
@@ -51,7 +79,6 @@ impl eframe::App for RsxnGUI {
                         );
                     });
 
-                let mut launcher = self.launcher.lock().unwrap();
 
                 ui.horizontal(|ui| {
                     let command_input = egui::TextEdit::singleline(&mut self.command_input)
@@ -71,19 +98,9 @@ impl eframe::App for RsxnGUI {
                     }
                 });
 
-                ui.horizontal(|ui| {
-                    if (launcher.state == crate::launcher::ServerState::STOPPED) && ui.button("Start").clicked() {
-                        self.logs.clear();
-                        self.logs.push(format!("{}Starting server...", UI_LOG_PREFIX));
-                        launcher.launch();
-                    }
-                    
-                    if (launcher.state == crate::launcher::ServerState::RUNNING) && ui.button("Stop").clicked() {
-                        launcher.stop();
-                        self.logs.push(format!("{}Stopped server.", UI_LOG_PREFIX));
-                    }
-                })
             })
         });
+
+
     }
 }
