@@ -12,6 +12,7 @@ use std::time::Duration;
 
 
 #[derive(PartialEq)]
+#[derive(Clone)]
 pub enum ServerState {
     RUNNING,
     STOPPED,
@@ -26,7 +27,7 @@ pub struct ServerLauncher {
     server_args: Vec<String>,
     pub server_name: String,
     memory: i32,
-    pub state: ServerState,
+    pub state: Arc<Mutex<ServerState>>,
     process: Option<Arc<Mutex<std::process::Child>>>,
     log_stream_sender: Arc<Sender<String>>,
 }
@@ -40,7 +41,7 @@ impl ServerLauncher {
             server_args,
             server_name,
             memory,
-            state: ServerState::STOPPED,
+            state: Arc::new(Mutex::new(ServerState::STOPPED)),
             process: None,
             log_stream_sender,
         }
@@ -67,7 +68,8 @@ impl ServerLauncher {
 
         debug!("Generated command: {:?}", cmd);
 
-        self.state = ServerState::RUNNING;
+        let mut _state_lock = self.state.lock().unwrap();
+        *_state_lock = ServerState::RUNNING;
 
         let process = cmd.spawn().expect("Failed to launch server");
         info!("{} launched with PID {}", self.server_name, process.id());
@@ -88,6 +90,7 @@ impl ServerLauncher {
 
         let process_clone = Arc::clone(&process);
         let server_name = self.server_name.clone();
+        let state_clone = Arc::clone(&self.state);
         thread::spawn(move || {
             loop {
                 let maybe_status = {
@@ -97,10 +100,13 @@ impl ServerLauncher {
         
                 match maybe_status {
                     Some(status) => {
+                        let mut state_lock = state_clone.lock().unwrap();
                         if status.success() {
                             info!("{} has stopped with code 0.", server_name);
+                            *state_lock = ServerState::STOPPED;
                         } else {
                             warn!("{} has crashed with code {}.", server_name, status.code().expect("Failed to get the exit code"));
+                            *state_lock = ServerState::CRASHED;
                         }
                         break;
                     }
