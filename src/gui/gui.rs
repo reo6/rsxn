@@ -68,6 +68,7 @@ impl eframe::App for RsxnGUI {
                 ui.separator();
 
                 while let Ok(log) = self.log_stream_receiver.try_recv() {
+                    let log = String::from_utf8(strip_ansi_escapes::strip(log.as_bytes())).unwrap();
                     self.logs.push(log);
                 }
 
