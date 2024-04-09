@@ -118,15 +118,19 @@ impl ServerLauncher {
         });
     }
 
-    pub fn stop(&mut self) {
-        info!("Stopping {}...", self.server_name);
+    pub fn shutdown(&mut self) {
+        info!("Shutting Down {}...", self.server_name);
 
         if let Some(process) = &self.process {
             process.lock().unwrap().kill().expect("Failed to kill server");
-            self.state = ServerState::STOPPED;
         } else {
             error!("Failed to stop server: no process found");
         }
+    }
+
+    pub fn stop(&mut self) {
+        // Send the stop command to the server
+        self.send_command("stop".to_string());
     }
 
     pub fn send_command(&mut self, mut command: String) {
