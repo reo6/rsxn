@@ -49,6 +49,9 @@ impl eframe::App for RsxnGUI {
                         launcher.stop();
                         self.logs.push(format!("{}Stopped server.", UI_LOG_PREFIX));
                     }
+                    if ui.button("Clear Logs").clicked() {
+                        self.logs.clear();
+                    }
 
                     // Button to open the server directory
                     if ui.button("Open Server Directory").clicked() {
