@@ -2,6 +2,7 @@ use crate::launcher::ServerLauncher;
 use eframe::egui;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
+use crate::launcher::ServerState;
 
 const UI_LOG_PREFIX: &str = "[RSXN] ";
 
@@ -31,7 +32,8 @@ impl RsxnGUI {
 impl eframe::App for RsxnGUI {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut launcher = self.launcher.lock().unwrap();
-
+        let launcher_state = launcher.state.lock().unwrap().clone();
+        
         // Side Panel
         egui::SidePanel::right("sidebar")
             .resizable(true)
@@ -39,16 +41,23 @@ impl eframe::App for RsxnGUI {
             .width_range(80.0..=200.0)
             .show(ctx, |ui| {
                 ui.vertical_centered_justified(|ui| {
-                    if (launcher.state == crate::launcher::ServerState::STOPPED) && ui.button("Start").clicked() {
+
+                    if (launcher_state == ServerState::STOPPED) && ui.button("Start").clicked() {
                         self.logs.clear();
                         self.logs.push(format!("{}Starting server...", UI_LOG_PREFIX));
                         launcher.launch();
                     }
                     
-                    if (launcher.state == crate::launcher::ServerState::RUNNING) && ui.button("Stop").clicked() {
+                    if (launcher_state == ServerState::RUNNING) && ui.button("Stop").clicked() {
                         launcher.stop();
                         self.logs.push(format!("{}Stopped server.", UI_LOG_PREFIX));
                     }
+
+                    if (launcher_state == ServerState::RUNNING) && ui.button("Shutdown").clicked() {
+                        launcher.shutdown();
+                        self.logs.push(format!("{}Shutting down server...", UI_LOG_PREFIX));
+                    }
+
                     if ui.button("Clear Logs").clicked() {
                         self.logs.clear();
                     }
@@ -100,7 +109,7 @@ impl eframe::App for RsxnGUI {
                     if ui.input(|i| i.key_pressed(egui::Key::Enter))
                         && command_input_response.lost_focus()
                         && !self.command_input.is_empty()
-                        && (launcher.state == crate::launcher::ServerState::RUNNING)
+                        && (launcher_state == crate::launcher::ServerState::RUNNING)
                     {
                         launcher.send_command(self.command_input.clone());
                         self.command_input.clear();
