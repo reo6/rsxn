@@ -6,11 +6,17 @@ use crate::launcher::ServerState;
 
 const UI_LOG_PREFIX: &str = "[RSXN] ";
 
+pub enum Page {
+    LAUNCHER,
+    START,
+}
+
 pub struct LauncherUI {
     command_input: String,
     log_stream_receiver: Receiver<String>,
     logs: Vec<String>,
     launcher: Arc<Mutex<ServerLauncher>>,
+    current_page: Page,
 }
 
 impl LauncherUI {
@@ -23,14 +29,11 @@ impl LauncherUI {
             log_stream_receiver,
             logs: Vec::new(),
             launcher,
+            current_page: Page::START,
         }
     }
-}
 
-
-
-impl eframe::App for LauncherUI {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn launcher_page(&mut self, ctx: &egui::Context) {
         let mut launcher = self.launcher.lock().unwrap();
         let launcher_state = launcher.state.lock().unwrap().clone();
         
@@ -119,7 +122,24 @@ impl eframe::App for LauncherUI {
 
             })
         });
+    }
+
+    fn start_page(&mut self, ctx: &egui::Context) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            if ui.button("Start").clicked() {
+                self.current_page = Page::LAUNCHER;
+            }
+        });
+    }
+}
 
 
+
+impl eframe::App for LauncherUI {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        match self.current_page {
+            Page::LAUNCHER => self.launcher_page(ctx),
+            Page::START => self.start_page(ctx),
+        }
     }
 }
