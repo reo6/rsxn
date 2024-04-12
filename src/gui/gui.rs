@@ -6,19 +6,19 @@ use crate::launcher::ServerState;
 
 const UI_LOG_PREFIX: &str = "[RSXN] ";
 
-pub struct RsxnGUI {
+pub struct LauncherUI {
     command_input: String,
     log_stream_receiver: Receiver<String>,
     logs: Vec<String>,
     launcher: Arc<Mutex<ServerLauncher>>,
 }
 
-impl RsxnGUI {
+impl LauncherUI {
     pub fn new_with_receiver(
         log_stream_receiver: Receiver<String>,
         launcher: Arc<Mutex<ServerLauncher>>,
-    ) -> RsxnGUI {
-        RsxnGUI {
+    ) -> LauncherUI {
+        LauncherUI {
             command_input: String::new(),
             log_stream_receiver,
             logs: Vec::new(),
@@ -29,7 +29,7 @@ impl RsxnGUI {
 
 
 
-impl eframe::App for RsxnGUI {
+impl eframe::App for LauncherUI {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let mut launcher = self.launcher.lock().unwrap();
         let launcher_state = launcher.state.lock().unwrap().clone();

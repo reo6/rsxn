@@ -2,7 +2,7 @@ pub mod launcher;
 pub mod gui;
 
 use launcher::ServerLauncher;
-use gui::gui::RsxnGUI;
+use gui::gui::LauncherUI;
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
 
@@ -28,6 +28,6 @@ fn main() {
     let _ = eframe::run_native(
         "rsxn",
         native_options,
-        Box::new(move |_cc| Box::new(RsxnGUI::new_with_receiver(receiver, server_launcher_clone.clone())))
+        Box::new(move |_cc| Box::new(LauncherUI::new_with_receiver(receiver, server_launcher_clone.clone())))
     );
 }
