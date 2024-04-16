@@ -3,38 +3,119 @@ use eframe::egui;
 use std::sync::mpsc::Receiver;
 use std::sync::{Arc, Mutex};
 use crate::launcher::ServerState;
+use std::sync::mpsc::Sender;
+use serde::{Serialize, Deserialize};
+use std::fs;
+use std::path::Path;
+use std::env;
 
 const UI_LOG_PREFIX: &str = "[RSXN] ";
+const CONFIG_FILE_NAME: &str = "rsxn_config.json";
+
+fn get_home_dir() -> String {
+    env::var("HOME").or_else(|_| env::var("USERPROFILE")).unwrap_or_else(|_| String::from("."))
+}
 
 pub enum Page {
     LAUNCHER,
     START,
 }
 
+
+#[derive(Serialize, Deserialize)]
+struct LauncherConfig {
+    server_jar_path: String,
+    java_exe_path: String,
+    rsxn_server_path: String,
+    memory: String,
+}
+
+
 pub struct LauncherUI {
     command_input: String,
     log_stream_receiver: Receiver<String>,
+    log_stream_sender: Arc<Sender<String>>,
     logs: Vec<String>,
-    launcher: Arc<Mutex<ServerLauncher>>,
+    launcher: Option<Arc<Mutex<ServerLauncher>>>,
     current_page: Page,
+    server_jar_path: String,
+    java_exe_path: String,
+    rsxn_server_path: String,
+    memory: String,
 }
 
 impl LauncherUI {
-    pub fn new_with_receiver(
+    pub fn new(
         log_stream_receiver: Receiver<String>,
-        launcher: Arc<Mutex<ServerLauncher>>,
+        log_stream_sender: Sender<String>,
     ) -> LauncherUI {
-        LauncherUI {
+        let mut ui = LauncherUI {
             command_input: String::new(),
             log_stream_receiver,
+            log_stream_sender: Arc::new(log_stream_sender),
             logs: Vec::new(),
-            launcher,
+            launcher: None,
             current_page: Page::START,
+            server_jar_path: String::new(),
+            java_exe_path: String::new(),
+            rsxn_server_path: String::new(),
+            memory: String::new(),
+        };
+        ui.load_config();
+        ui
+    }
+
+    fn load_config(&mut self) {
+        let home_dir = get_home_dir();
+        let config_path = Path::new(&home_dir).join(CONFIG_FILE_NAME);
+        if config_path.exists() {
+            let config: LauncherConfig = serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+            self.server_jar_path = config.server_jar_path;
+            self.java_exe_path = config.java_exe_path;
+            self.rsxn_server_path = config.rsxn_server_path;
+            self.memory = config.memory;
         }
     }
 
+    fn save_config(&self) {
+        let home_dir = get_home_dir();
+        let config_path = Path::new(&home_dir).join(CONFIG_FILE_NAME);
+        let config = LauncherConfig {
+            server_jar_path: self.server_jar_path.clone(),
+            java_exe_path: self.java_exe_path.clone(),
+            rsxn_server_path: self.rsxn_server_path.clone(),
+            memory: self.memory.clone(),
+        };
+        fs::write(&config_path, serde_json::to_string(&config).unwrap()).unwrap();
+    }
+
+    fn start_page(&mut self, ctx: &egui::Context) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.add(egui::TextEdit::singleline(&mut self.server_jar_path).hint_text("Server JAR Path"));
+            ui.add(egui::TextEdit::singleline(&mut self.java_exe_path).hint_text("Java Path"));
+            ui.add(egui::TextEdit::singleline(&mut self.rsxn_server_path).hint_text("Server Directory Path"));
+            ui.add(egui::TextEdit::singleline(&mut self.memory).hint_text("Memory (MB)"));
+
+            if ui.button("Start").clicked() {
+                let launcher = ServerLauncher::new(
+                    self.server_jar_path.clone(),
+                    self.java_exe_path.clone(),
+                    self.rsxn_server_path.clone(),
+                    vec![],
+                    "Test Server".to_string(),
+                    self.memory.parse().unwrap(),
+                    self.log_stream_sender.clone(),
+                );
+                self.launcher = Some(Arc::new(Mutex::new(launcher)));
+                self.current_page = Page::LAUNCHER;
+                self.save_config();
+            }
+        });
+    }
+    
     fn launcher_page(&mut self, ctx: &egui::Context) {
-        let mut launcher = self.launcher.lock().unwrap();
+        let launcher_arc = self.launcher.as_ref().unwrap();
+        let mut launcher = launcher_arc.lock().unwrap();
         let launcher_state = launcher.state.lock().unwrap().clone();
         
         // Side Panel
@@ -124,13 +205,7 @@ impl LauncherUI {
         });
     }
 
-    fn start_page(&mut self, ctx: &egui::Context) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            if ui.button("Start").clicked() {
-                self.current_page = Page::LAUNCHER;
-            }
-        });
-    }
+
 }
 
 
