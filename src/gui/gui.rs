@@ -95,14 +95,20 @@ impl LauncherUI {
             ui.add(egui::TextEdit::singleline(&mut self.java_exe_path).hint_text("Java Path"));
             ui.add(egui::TextEdit::singleline(&mut self.rsxn_server_path).hint_text("Server Directory Path"));
             ui.add(egui::TextEdit::singleline(&mut self.memory).hint_text("Memory (MB)"));
-
+    
             if ui.button("Start").clicked() {
+                let server_name = Path::new(&self.rsxn_server_path)
+                    .file_name()
+                    .and_then(|os_str| os_str.to_str())
+                    .unwrap_or("Unknown Server")
+                    .to_string();
+    
                 let launcher = ServerLauncher::new(
                     self.server_jar_path.clone(),
                     self.java_exe_path.clone(),
                     self.rsxn_server_path.clone(),
                     vec![],
-                    "Test Server".to_string(),
+                    server_name,
                     self.memory.parse().unwrap(),
                     self.log_stream_sender.clone(),
                 );
