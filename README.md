@@ -13,3 +13,9 @@ Also I needed a side-hustle alongside work to... well, stay alive.
 ## How do I install?
 
 Go to the [releases](https://github.com/reo6/rsxn/releases) and grab a file or clone the project and run ``cargo build --publish``.
+
+## Screenshots
+
+<img src="https://i.imgur.com/SyzVgv2.png" width=400 height=auto></img>
+
+<img src="https://i.imgur.com/rrNWhAx.png" width=400 height=auto></img>
