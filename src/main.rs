@@ -1,10 +1,7 @@
 pub mod launcher;
 pub mod gui;
-
-use launcher::ServerLauncher;
 use gui::gui::LauncherUI;
 use std::sync::mpsc;
-use std::sync::{Arc, Mutex};
 
 
 fn main() {
