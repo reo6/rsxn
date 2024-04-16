@@ -126,7 +126,7 @@ impl LauncherUI {
             .show(ctx, |ui| {
                 ui.vertical_centered_justified(|ui| {
 
-                    if (launcher_state == ServerState::STOPPED) && ui.button("Start").clicked() {
+                    if ((launcher_state == ServerState::STOPPED) || (launcher_state == ServerState::CRASHED)) && ui.button("Start").clicked() {
                         self.logs.clear();
                         self.logs.push(format!("{}Starting server...", UI_LOG_PREFIX));
                         launcher.launch();
