@@ -166,7 +166,7 @@ impl LauncherUI {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.vertical_centered(|ui| {
-                ui.heading("rsxn");
+                ui.heading(launcher.server_name.clone());
                 ui.separator();
 
                 while let Ok(log) = self.log_stream_receiver.try_recv() {
